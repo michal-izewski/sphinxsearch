@@ -25,8 +25,6 @@ EOF
 fi
 
 if [ "$1" = 'sphinx' ]; then
-	trap "echo TRAPed signal" HUP INT QUIT KILL TERM
-
 	chown -R sphinx:sphinx /var/lib/sphinx /var/log/sphinx
 	echo "Start Cron Daemon"
 	/usr/sbin/crond -n -x misc 2>&1 | awk '{ print strftime("%a %b %d %T %Y"), $0; fflush() }' >> /var/log/sphinx/cron &
@@ -39,19 +37,13 @@ if [ "$1" = 'sphinx' ]; then
 		fi
 
 		echo "Start Sphinxsearch Indexer for \"$indexes\" indexes"
-		su - sphinx -c "/usr/bin/indexer $indexes" > /var/log/sphinx/indexer.log
+		#su - sphinx -c "/usr/bin/indexer $indexes" > /var/log/sphinx/indexer.log
 		echo "Finish Sphinxsearch Indexer for \"$indexes\" indexes"
 		echo "$indexes" > /tmp/sphinx.index
 	fi
 
 	echo "Starting Sphinx"
-	/usr/bin/searchd -c /etc/sphinx/sphinx.conf
-	
-	echo "[hit enter key to exit] or run 'docker stop <container>'"
-	read
-
-	echo "Stopping Sphinx"
-	/usr/bin/searchd -c /etc/sphinx/sphinx.conf --stop
+	/usr/bin/searchd -c /etc/sphinx/sphinx.conf --nodetach
 elif [ "$1" = 'indexer' ]; then
 	shift
 	indexes=$@
