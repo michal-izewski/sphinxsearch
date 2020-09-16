@@ -1,15 +1,15 @@
 FROM centos:7
 
-MAINTAINER Ivan Koretskiy, gillbeits@gmail.com
+MAINTAINER Michał Iżewski, m.izewski@gmail.com
 
 #add EPEL Repository
-RUN yum -q --disablerepo=extras --disablerepo=updates -y update && \
-    rpm --quiet -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -q --disablerepo=extras --disablerepo=updates install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm && \
-    yum -q --disablerepo=extras --disablerepo=updates install -y wget vim tar cronie postgresql-libs initscripts unixODBC rsync && \
-    yum -q --disablerepo=extras --disablerepo=updates install -y Percona-Server-shared-56 Percona-Server-client-56 && \
-    rpm --quiet -Uhv http://sphinxsearch.com/files/sphinx-2.2.10-1.rhel7.x86_64.rpm && \
-    yum -q clean -y all
+RUN yum -q --disablerepo=extras --disablerepo=updates -y update
+RUN yum install -y http://repo.percona.com/centos/7/RPMS/x86_64/Percona-Server-shared-56-5.6.49-rel89.0.1.el7.x86_64.rpm
+RUN yum install -y http://repo.percona.com/centos/7/RPMS/x86_64/Percona-Server-client-56-5.6.49-rel89.0.1.el7.x86_64.rpm
+RUN rpm --quiet -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+RUN yum -q --disablerepo=extras --disablerepo=updates install -y wget vim tar cronie postgresql-libs initscripts unixODBC rsync
+RUN rpm --quiet -Uhv http://sphinxsearch.com/files/sphinx-2.2.11-1.rhel7.x86_64.rpm
+RUN yum -q clean -y all
 
 RUN wget http://sphinxsearch.com/files/dicts/ru.pak -P /var/lib/sphinx/_dict
 RUN wget http://sphinxsearch.com/files/dicts/en.pak -P /var/lib/sphinx/_dict
