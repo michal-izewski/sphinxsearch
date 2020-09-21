@@ -8,7 +8,7 @@ RUN yum install -y http://repo.percona.com/centos/7/RPMS/x86_64/Percona-Server-s
 RUN yum install -y http://repo.percona.com/centos/7/RPMS/x86_64/Percona-Server-client-56-5.6.49-rel89.0.1.el7.x86_64.rpm
 RUN rpm --quiet -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 RUN yum -q --disablerepo=extras --disablerepo=updates install -y wget vim tar cronie postgresql-libs initscripts unixODBC rsync
-RUN rpm --quiet -Uhv http://sphinxsearch.com/files/sphinx-2.2.11-1.rhel7.x86_64.rpm
+RUN rpm --quiet -Uhv http://sphinxsearch.com/files/sphinx-2.2.10-1.rhel7.x86_64.rpm
 RUN yum -q clean -y all
 
 RUN wget http://sphinxsearch.com/files/dicts/ru.pak -P /var/lib/sphinx/_dict
