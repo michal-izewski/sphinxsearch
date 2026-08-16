@@ -1,0 +1,70 @@
+name: Docker build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Catch upstream link rot (dead mirrors, pulled rpms) before it bites in production.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t sphinxsearch-2.2:ci .
+
+      - name: Smoke test (RT index, searchd, mysql41)
+        run: |
+          mkdir -p /tmp/sphinx-ci/etc /tmp/sphinx-ci/data /tmp/sphinx-ci/log
+          cat > /tmp/sphinx-ci/etc/sphinx.conf <<'EOF'
+          index rt_test
+          {
+          	type			= rt
+          	path			= /var/lib/sphinx/rt_test
+          	rt_field		= content
+          	rt_attr_uint		= gid
+          }
+
+          searchd
+          {
+          	listen			= 9312
+          	listen			= 9306:mysql41
+          	log			= /var/log/sphinx/searchd.log
+          	query_log		= /var/log/sphinx/query.log
+          	pid_file		= /var/run/sphinx/searchd.pid
+          	workers			= threads
+          	binlog_path		= /var/lib/sphinx/
+          }
+          EOF
+
+          docker run -d --name sphinx-ci \
+            -v /tmp/sphinx-ci/etc:/etc/sphinx \
+            -v /tmp/sphinx-ci/data:/var/lib/sphinx \
+            -v /tmp/sphinx-ci/log:/var/log/sphinx \
+            sphinxsearch-2.2:ci sphinx
+
+          for i in $(seq 1 10); do
+            if docker exec sphinx-ci mysql -h 127.0.0.1 -P 9306 -e "SHOW STATUS LIKE 'uptime';" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+
+          docker logs sphinx-ci
+          docker exec sphinx-ci mysql -h 127.0.0.1 -P 9306 -e "
+            INSERT INTO rt_test (id, content, gid) VALUES (1, 'hello world', 10);
+            SELECT * FROM rt_test WHERE MATCH('hello');
+          "
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker logs sphinx-ci || true
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f sphinx-ci || true
