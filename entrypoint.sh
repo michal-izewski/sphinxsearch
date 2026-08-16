@@ -3,9 +3,11 @@
 set -e
 
 DOCKER_HOST=`/sbin/ip route|awk '/default/ { print $3 }'`
-echo "${DOCKER_HOST}    ${HOST_IP}" >> /etc/hosts
+if ! grep -qF "${DOCKER_HOST}    ${HOST_IP}" /etc/hosts; then
+	echo "${DOCKER_HOST}    ${HOST_IP}" >> /etc/hosts
+fi
 
-if [ ${RSYNC} = 'YES' ]; then
+if [ "${RSYNC:-NO}" = 'YES' ]; then
 	cat <<EOF > /etc/rsyncd.conf
 # Rsync config for SphinxSearch Docker Container
 uid = ${RSYNC_OWNER}
@@ -43,7 +45,7 @@ if [ "$1" = 'sphinx' ]; then
 	fi
 
 	echo "Starting Sphinx"
-	/usr/bin/searchd -c /etc/sphinx/sphinx.conf --nodetach
+	su - sphinx -c "/usr/bin/searchd -c /etc/sphinx/sphinx.conf --nodetach"
 elif [ "$1" = 'indexer' ]; then
 	shift
 	indexes=$@
@@ -55,7 +57,7 @@ elif [ "$1" = 'indexer' ]; then
 elif [ "$1" = 'crontab' ]; then
 	crontab -e -u sphinx
 elif [ "$1" = 'console' ]; then
-	mysql -h ${SPHINX_PORT_9306_TCP_ADDR} -P ${SPHINX_PORT_9306_TCP_PORT}
+	mysql -h "${SPHINX_HOST:-127.0.0.1}" -P "${SPHINX_PORT:-9306}"
 elif [ "$1" = 'editconfig' ]; then
 	vim /etc/sphinx/sphinx.conf
 elif [ "$1" = 'log' ]; then
