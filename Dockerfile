@@ -1,6 +1,6 @@
 FROM centos:7
 
-MAINTAINER Michał Iżewski, m.izewski@gmail.com
+LABEL maintainer="Michał Iżewski <m.izewski@gmail.com>"
 
 # CentOS 7 is EOL: mirrorlist.centos.org is dead (DNS doesn't even resolve anymore).
 # Point base/updates/extras at the vault so `yum` still has something to talk to.
@@ -46,16 +46,16 @@ RUN wget https://sphinxsearch.com/files/dicts/de.pak -P /var/lib/sphinx/_dict
 RUN localedef -i ru_RU -f UTF-8 ru_RU.UTF-8 && \
     localedef -i de_DE -f UTF-8 de_DE.UTF-8
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
-ENV RSYNC NO
-ENV RSYNC_VOLUME /var/lib/sphinx
-ENV RSYNC_READONLY ${RSYNC_READONLY:-yes}
-ENV RSYNC_OWNER ${RSYNC_OWNER:-sphinx}
-ENV RSYNC_GROUP ${RSYNC_GROUP:-sphinx}
-ENV RSYNC_ALLOW ${RSYNC_ALLOW:-192.168.0.0/16 172.16.0.0/12}
+ENV RSYNC=NO
+ENV RSYNC_VOLUME=/var/lib/sphinx
+ENV RSYNC_READONLY=yes
+ENV RSYNC_OWNER=sphinx
+ENV RSYNC_GROUP=sphinx
+ENV RSYNC_ALLOW="192.168.0.0/16 172.16.0.0/12"
 
 # expose ports
 EXPOSE 9306 9312 873
